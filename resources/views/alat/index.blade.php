@@ -101,20 +101,22 @@
                     <p class="text-sm text-gray-500 font-medium ml-6">Kelola dan monitor ketersediaan alat</p>
                 </div>
 
-                {{-- Tombol Import --}}
-                <a href="{{ route('alat.import.form') }}"
-                class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:shadow-lg hover:shadow-green-500/50 transition-all text-sm font-bold">
-                    <i class="bi bi-cloud-upload text-lg"></i>
-                    <span>Import Excel</span>
-                </a>
+                <div class="flex items-center gap-3">
+                    {{-- Tombol Import --}}
+                    <a href="{{ route('alat.import.form') }}"
+                       class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:shadow-lg hover:shadow-green-500/50 transition-all text-sm font-bold hover:-translate-y-0.5">
+                        <i class="bi bi-cloud-upload text-lg"></i>
+                        <span>Import Excel</span>
+                    </a>
 
-                {{-- Tombol Create --}}
-                <a href="{{ route('alat.create') }}"
-                   class="group inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:shadow-lg hover:shadow-blue-500/50 transition-all text-sm font-bold hover:-translate-y-0.5">
-                    <i class="bi bi-plus-circle text-lg"></i>
-                    <span>Tambah Alat</span>
-                    <i class="bi bi-arrow-right text-sm group-hover:translate-x-1 transition-transform"></i>
-                </a>
+                    {{-- Tombol Tambah --}}
+                    <a href="{{ route('alat.create') }}"
+                       class="group inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:shadow-lg hover:shadow-blue-500/50 transition-all text-sm font-bold hover:-translate-y-0.5">
+                        <i class="bi bi-plus-circle text-lg"></i>
+                        <span>Tambah Alat</span>
+                        <i class="bi bi-arrow-right text-sm group-hover:translate-x-1 transition-transform"></i>
+                    </a>
+                </div>
             </div>
         </div>
 

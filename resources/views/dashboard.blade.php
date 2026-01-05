@@ -491,20 +491,20 @@
                             class="bi bi-arrow-right text-2xl text-gray-400 group-hover:text-blue-600 group-hover:translate-x-2 transition-all duration-300"></i>
                     </a>
 
-                    {{-- <a href="{{ route('peminjam.create') }}"
-                        class="group relative flex items-center gap-4 p-5 rounded-2xl border-2 border-gray-200 hover:border-green-500 hover:bg-gradient-to-br hover:from-green-50 hover:to-emerald-50 transition-all duration-500 overflow-hidden transform hover:scale-[1.02] hover:shadow-xl">
+                    <a href="{{ route('alat.import') }}"
+                        class="group relative flex items-center gap-4 p-5 rounded-2xl border-2 border-gray-200 hover:border-blue-500 hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 transition-all duration-500 overflow-hidden transform hover:scale-[1.02] hover:shadow-xl">
                         <div
-                            class="relative w-14 h-14 bg-gray-100 group-hover:bg-gradient-to-br group-hover:from-green-500 group-hover:to-emerald-600 rounded-xl flex items-center justify-center transition-all duration-500 group-hover:rotate-12 shadow-lg">
+                            class="relative w-14 h-14 bg-gray-100 group-hover:bg-gradient-to-br group-hover:from-blue-500 group-hover:to-indigo-600 rounded-xl flex items-center justify-center transition-all duration-500 group-hover:rotate-12 shadow-lg">
                             <i
-                                class="bi bi-person-plus text-3xl text-gray-600 group-hover:text-white transition-colors duration-500"></i>
+                                class="bi bi-cloud-upload text-3xl text-gray-600 group-hover:text-white transition-colors duration-500"></i>
                         </div>
                         <div class="relative flex-1">
-                            <p class="font-black text-lg text-gray-900 mb-0.5">Tambah Peminjam</p>
-                            <p class="text-sm text-gray-500 font-medium">Daftarkan peminjam baru</p>
+                            <p class="font-black text-lg text-gray-900 mb-0.5">Import Data Alat</p>
+                            <p class="text-sm text-gray-500 font-medium">Import data alat dari Template Excel</p>
                         </div>
                         <i
                             class="bi bi-arrow-right text-2xl text-gray-400 group-hover:text-green-600 group-hover:translate-x-2 transition-all duration-300"></i>
-                    </a> --}}
+                    </a>
                 </div>
             </div>
 
