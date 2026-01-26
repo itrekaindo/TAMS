@@ -1,0 +1,21 @@
+[90m= [39m[34;4mApp\Models\Peminjaman[39;24m {#6522
+    [34mid[39m: [35m14[39m,
+    [34mkode_peminjaman[39m: "[32mPJM-20260107-0001[39m",
+    [34mpeminjam_id[39m: [35m9[39m,
+    [34mnama_lengkap[39m: "[32mTest[39m",
+    [34mnip[39m: "[32m612500043[39m",
+    [34mdepartemen[39m: "[32mTI[39m",
+    [34memail[39m: "[32mfaishalabiy@ptrekaindo.co.id[39m",
+    [34mtelepon[39m: "[32m081231588435[39m",
+    [34mtanggal_pinjam[39m: "[32m2026-01-07[39m",
+    [34mkeperluan[39m: "[32mProduksi PIDS[39m",
+    [34mfoto_peminjaman[39m: "[32mphoto/pinjam/pinjam-20260107-133917.png[39m",
+    [34mtanggal_kembali_rencana[39m: "[32m2026-01-08[39m",
+    [34mtanggal_kembali_aktual[39m: "[32m2026-01-08[39m",
+    [34mfoto_pengembalian[39m: "[32mphoto/kembali/kembali-20260108-112556.jpeg[39m",
+    [34mketerangan_pengembalian[39m: [36mnull[39m,
+    [34mstatus[39m: "[32mdikembalikan[39m",
+    [34mcreated_at[39m: "[32m2026-01-07 13:39:17[39m",
+    [34mupdated_at[39m: "[32m2026-01-08 11:25:56[39m",
+  }
+

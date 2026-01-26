@@ -25,6 +25,11 @@ class Peminjam extends Model
         return $this->hasMany(Peminjaman::class, 'peminjam_id');
     }
 
+    public function alat()
+    {
+        return $this->belongsTo(Alat::class);
+    }
+
     // Accessor untuk format telepon
     public function getTeleponFormatAttribute()
     {

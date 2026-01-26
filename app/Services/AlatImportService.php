@@ -16,6 +16,20 @@ class AlatImportService
     public function import($filePath)
     {
         try {
+            Log::info('Import started', [
+                'file_path' => $filePath,
+                'file_exists' => file_exists($filePath),
+                'is_readable' => is_readable($filePath)
+            ]);
+
+            if (!file_exists($filePath)) {
+                throw new \Exception("File tidak ditemukan: {$filePath}");
+            }
+
+            if (!is_readable($filePath)) {
+                throw new \Exception("File tidak bisa dibaca: {$filePath}");
+            }
+
             // Load file Excel
             $spreadsheet = IOFactory::load($filePath);
             $worksheet = $spreadsheet->getActiveSheet();
@@ -24,22 +38,28 @@ class AlatImportService
             // Ambil header (baris pertama)
             $header = array_shift($rows);
 
-            // Mapping header ke index
-            $headerMap = array_flip(array_map('strtolower', array_map('trim', $header)));
+            // Mapping header ke index (case-insensitive)
+            $headerMap = [];
+            foreach ($header as $index => $col) {
+                $headerMap[strtolower(trim(str_replace([' ', '.', '-'], ['_', '', '_'], $col)))] = $index;
+            }
+
+            Log::info('Header mapping', ['headers' => $headerMap]);
 
             DB::beginTransaction();
 
             foreach ($rows as $index => $row) {
                 // Skip baris kosong
-                if (empty(array_filter($row))) {
+                if (empty(array_filter($row, fn($cell) => $cell !== null && trim($cell) !== ''))) {
                     continue;
                 }
 
                 try {
-                    $this->processRow($row, $headerMap, $index + 2); // +2 karena baris 1 header, index mulai dari 0
+                    $this->processRow($row, $headerMap, $index + 2);
                 } catch (\Exception $e) {
                     $this->failedCount++;
                     $this->errors[] = "Baris " . ($index + 2) . ": " . $e->getMessage();
+                    Log::error("Row {$index} error", ['error' => $e->getMessage()]);
                 }
             }
 
@@ -54,7 +74,9 @@ class AlatImportService
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Import error: ' . $e->getMessage());
+            Log::error('Import error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
 
             return [
                 'success' => false,
@@ -65,69 +87,119 @@ class AlatImportService
 
     private function processRow($row, $headerMap, $rowNumber)
     {
-        // Ambil data berdasarkan header
-        $kodeAlat = $this->getValueByHeader($row, $headerMap, 'kode_alat');
+        // Ambil nama_alat (wajib)
         $namaAlat = $this->getValueByHeader($row, $headerMap, 'nama_alat');
-        $jumlahTotal = $this->getValueByHeader($row, $headerMap, 'jumlah_total');
 
-        // Validasi data wajib
-        if (empty($kodeAlat) || empty($namaAlat) || empty($jumlahTotal)) {
-            throw new \Exception("Data wajib tidak lengkap (kode_alat, nama_alat, jumlah_total)");
+        // Validasi nama_alat wajib ada
+        if (empty($namaAlat)) {
+            throw new \Exception("Nama alat wajib diisi");
         }
 
-        // Data yang akan disimpan
+        // Ambil dan normalisasi kondisi
+        $kondisi = $this->getValueByHeader($row, $headerMap, 'kondisi');
+        $validKondisi = ['baik', 'rusak', 'rusak_ringan', 'rusak_berat', 'maintenance'];
+
+        if ($kondisi) {
+            $kondisiLower = strtolower(trim($kondisi));
+            $kondisi = in_array($kondisiLower, $validKondisi) ? $kondisiLower : 'baik';
+        } else {
+            $kondisi = 'baik';
+        }
+
+        // Ambil jumlah_total dari kolom 'jumlah' di Excel
+        $jumlahTotal = $this->parseInteger($this->getValueByHeader($row, $headerMap, 'jumlah'));
+        if ($jumlahTotal === null || $jumlahTotal < 1) {
+            $jumlahTotal = 1; // Set default minimal 1
+        }
+
+        // Data yang akan disimpan — semua sesuai $fillable di model
         $data = [
             'nama_alat' => $namaAlat,
+            'kode_alat' => $this->getValueByHeader($row, $headerMap, 'kode_alat'),
+            'spesifikasi_type' => $this->getValueByHeader($row, $headerMap, 'spesifikasi_type'),
+            'merk' => $this->getValueByHeader($row, $headerMap, 'merk'),
+            'kapasitas' => $this->getValueByHeader($row, $headerMap, 'kapasitas'),
+            'jenis_tools' => $this->getValueByHeader($row, $headerMap, 'jenis_tools'),
             'deskripsi' => $this->getValueByHeader($row, $headerMap, 'deskripsi'),
-            'jumlah_total' => (int) $jumlahTotal,
-            'jumlah_tersedia' => (int) ($this->getValueByHeader($row, $headerMap, 'jumlah_tersedia') ?: $jumlahTotal),
-            'kondisi' => $this->getValueByHeader($row, $headerMap, 'kondisi') ?: 'baik',
+            'jumlah_total' => $jumlahTotal,
+            'jumlah_tersedia' => $jumlahTotal, // = jumlah_total saat insert
+            'kondisi' => $kondisi,
             'kategori' => $this->getValueByHeader($row, $headerMap, 'kategori'),
             'lokasi' => $this->getValueByHeader($row, $headerMap, 'lokasi'),
+            'pic' => $this->getValueByHeader($row, $headerMap, 'pic'),
+            'proyek' => $this->getValueByHeader($row, $headerMap, 'proyek'),
+            'kategori_tools' => $this->getValueByHeader($row, $headerMap, 'kategori_tools'),
+            'foto_tools' => $this->getValueByHeader($row, $headerMap, 'foto_tools'),
+            'sticker' => $this->getValueByHeader($row, $headerMap, 'sticker'),
+            'pemakai' => $this->getValueByHeader($row, $headerMap, 'pemakai'),
+            'lokasi_distribusi' => $this->getValueByHeader($row, $headerMap, 'lokasi_distribusi'),
+            'hilang' => $this->parseBoolean($this->getValueByHeader($row, $headerMap, 'hilang')),
         ];
 
-        // Validasi kondisi
-        if (!in_array($data['kondisi'], ['baik', 'rusak_ringan', 'rusak_berat', 'maintenance'])) {
-            $data['kondisi'] = 'baik';
-        }
+        Alat::create($data);
 
-        // Cek apakah data sudah ada
-        $existingAlat = Alat::where('kode_alat', $kodeAlat)->first();
-
-        if ($existingAlat) {
-            // Update
-            $existingAlat->update($data);
-        } else {
-            // Insert
-            Alat::create(array_merge(['kode_alat' => $kodeAlat], $data));
-        }
+        Log::info("Created new alat from import", [
+            'row' => $rowNumber,
+            'nama_alat' => $namaAlat,
+            'kode_alat' => $data['kode_alat']
+        ]);
 
         $this->successCount++;
     }
 
+    /**
+     * Ambil nilai dari row berdasarkan header
+     */
     private function getValueByHeader($row, $headerMap, $columnName)
     {
-        $index = $headerMap[strtolower($columnName)] ?? null;
+        $normalizedName = strtolower(str_replace([' ', '.', '-'], ['_', '', '_'], $columnName));
 
-        if ($index === null) {
+        $variations = [
+            $normalizedName,
+            str_replace('_', '', $normalizedName),
+            $columnName,
+            strtolower($columnName),
+        ];
+
+        foreach ($variations as $variant) {
+            $index = $headerMap[$variant] ?? null;
+            if ($index !== null && isset($row[$index])) {
+                $value = trim($row[$index]);
+                return ($value === '' || $value === null) ? null : $value;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Parse string ke integer
+     */
+    private function parseInteger($value)
+    {
+        if ($value === null || $value === '') {
             return null;
         }
 
-        return isset($row[$index]) ? trim($row[$index]) : null;
+        $cleaned = preg_replace('/[^0-9-]/', '', $value);
+        if ($cleaned === '' || $cleaned === '-') {
+            return null;
+        }
+
+        return (int) $cleaned;
     }
 
-    public function getSuccessCount()
+    /**
+     * Parse string ke boolean
+     */
+    private function parseBoolean($value)
     {
-        return $this->successCount;
-    }
+        if ($value === null || $value === '') {
+            return false;
+        }
 
-    public function getFailedCount()
-    {
-        return $this->failedCount;
-    }
-
-    public function getErrors()
-    {
-        return $this->errors;
+        $value = strtolower(trim($value));
+        $truthyValues = ['true', '1', 'yes', 'ya', 'y'];
+        return in_array($value, $truthyValues);
     }
 }

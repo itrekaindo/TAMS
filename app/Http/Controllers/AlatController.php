@@ -34,6 +34,11 @@ class AlatController extends Controller
             $query->where('kategori', $request->kategori);
         }
 
+        //Filter by lokasi
+        if ($request->filled('lokasi')) {
+            $query->where('lokasi', $request->lokasi);
+        }
+
         $alats = $query->latest()->paginate(15);
 
         // Get unique categories for filter
@@ -42,7 +47,12 @@ class AlatController extends Controller
             ->whereNotNull('kategori')
             ->pluck('kategori');
 
-        return view('alat.index', compact('alats', 'kategoris'));
+        $lokasis = Alat::select('lokasi')
+            ->distinct()
+            ->whereNotNull('lokasi')
+            ->pluck('lokasi');
+
+        return view('alat.index', compact('alats', 'kategoris', 'lokasis'));
     }
 
     public function create()
@@ -52,18 +62,52 @@ class AlatController extends Controller
 
     public function store(Request $request)
     {
+        // $request->validate([
+        //     'kode_alat' => 'nullable|string|max:50',
+        //     'nama_alat' => 'required|string|max:255',
+        //     'deskripsi' => 'nullable|string',
+        //     'jumlah_total' => 'required|integer|min:1',
+        //     'kondisi' => 'required|in:baik,rusak_ringan,rusak_berat,maintenance',
+        //     'kategori' => 'nullable|string|max:100',
+        //     'lokasi' => 'nullable|string|max:255'
+        // ]);
+
         $request->validate([
-            'kode_alat' => 'required|string|unique:alats,kode_alat|max:50',
+            'kode_alat' => 'nullable|string|max:50',
             'nama_alat' => 'required|string|max:255',
+            'spesifikasi_type' => 'nullable|string|max:255',
+            'merk' => 'nullable|string|max:100',
+            'kapasitas' => 'nullable|string|max:50',
+            'jenis_tools' => 'nullable|in:' . implode(',', array_keys(Alat::jenisToolsOptions())),
+            'pic' => 'nullable|string|max:100',
+            'proyek' => 'nullable|in:' . implode(',', array_keys(Alat::proyekOptions())),
+            'kategori_tools' => 'nullable|in:' . implode(',', array_keys(Alat::kategoriToolsOptions())),
+            'foto_tools' => 'nullable|string|max:255',
+            'sticker' => 'nullable|string|max:100',
+            'pemakai' => 'nullable|string|max:100',
+            'lokasi_distribusi' => 'nullable|string|max:255',
+            'hilang' => 'nullable|boolean',
+
             'deskripsi' => 'nullable|string',
             'jumlah_total' => 'required|integer|min:1',
-            'kondisi' => 'required|in:baik,rusak_ringan,rusak_berat,maintenance',
+            'kondisi' => 'required|in:' . implode(',', array_keys(Alat::kondisiOptions())),
             'kategori' => 'nullable|string|max:100',
-            'lokasi' => 'nullable|string|max:255'
+            'lokasi' => 'nullable|string|max:255',
         ]);
 
-        $data = $request->all();
-        $data['jumlah_tersedia'] = $request->jumlah_total;
+        // $data = $request->all();
+        $data = $request->only([
+            'kode_alat', 'nama_alat', 'spesifikasi_type', 'merk', 'kapasitas',
+            'jenis_tools', 'pic', 'proyek', 'kategori_tools', 'foto_tools',
+            'sticker', 'pemakai', 'lokasi_distribusi', 'hilang',
+            'deskripsi', 'jumlah_total', 'kondisi', 'kategori', 'lokasi'
+        ]);
+
+        if ($request->hilang) {
+            $data['jumlah_tersedia'] = 0;
+        } else {
+            $data['jumlah_tersedia'] = $request->jumlah_total;
+        }
 
         Alat::create($data);
 
@@ -121,13 +165,26 @@ class AlatController extends Controller
     public function update(Request $request, Alat $alat)
     {
         $request->validate([
-            'kode_alat' => 'required|string|max:50|unique:alats,kode_alat,' . $alat->id,
+            'kode_alat' => 'nullable|string|max:50',
             'nama_alat' => 'required|string|max:255',
+            'spesifikasi_type' => 'nullable|string|max:255',
+            'merk' => 'nullable|string|max:100',
+            'kapasitas' => 'nullable|string|max:50',
+            'jenis_tools' => 'nullable|in:' . implode(',', array_keys(Alat::jenisToolsOptions())),
+            'pic' => 'nullable|string|max:100',
+            'proyek' => 'nullable|in:' . implode(',', array_keys(Alat::proyekOptions())),
+            'kategori_tools' => 'nullable|in:' . implode(',', array_keys(Alat::kategoriToolsOptions())),
+            'foto_tools' => 'nullable|string|max:255',
+            'sticker' => 'nullable|string|max:100',
+            'pemakai' => 'nullable|string|max:100',
+            'lokasi_distribusi' => 'nullable|string|max:255',
+            'hilang' => 'nullable|boolean',
+
             'deskripsi' => 'nullable|string',
             'jumlah_total' => 'required|integer|min:1',
-            'kondisi' => 'required|in:baik,rusak_ringan,rusak_berat,maintenance',
+            'kondisi' => 'required|in:' . implode(',', array_keys(Alat::kondisiOptions())),
             'kategori' => 'nullable|string|max:100',
-            'lokasi' => 'nullable|string|max:255'
+            'lokasi' => 'nullable|string|max:255',
         ]);
 
         // Hitung jumlah unit yang sedang dipinjam (aktif)
@@ -142,7 +199,11 @@ class AlatController extends Controller
         }
 
         // Hitung jumlah_tersedia baru
-        $jumlahTersediaBaru = $request->jumlah_total - $dipinjam;
+        if ($request->hilang) {
+            $jumlahTersediaBaru = 0;
+        } else {
+            $jumlahTersediaBaru = $request->jumlah_total - $dipinjam;
+        }
 
         $alat->update([
             'kode_alat' => $request->kode_alat,
@@ -153,6 +214,18 @@ class AlatController extends Controller
             'kondisi' => $request->kondisi,
             'kategori' => $request->kategori,
             'lokasi' => $request->lokasi,
+            'spesifikasi_type' => $request->spesifikasi_type,
+            'merk' => $request->merk,
+            'kapasitas' => $request->kapasitas,
+            'jenis_tools' => $request->jenis_tools,
+            'pic' => $request->pic,
+            'proyek' => $request->proyek,
+            'kategori_tools' => $request->kategori_tools,
+            'foto_tools' => $request->foto_tools,
+            'sticker' => $request->has('sticker') ? 1 : 0,
+            'pemakai' => $request->pemakai,
+            'lokasi_distribusi' => $request->lokasi_distribusi,
+            'hilang' => $request->has('hilang') ? 1 : 0,
         ]);
 
         return redirect()->route('alat.index')

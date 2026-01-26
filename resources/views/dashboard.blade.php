@@ -395,11 +395,27 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-5">
+                                    @php
+                                        // Hitung total alat dan alat yang sudah dikembalikan
+                                        $totalAlat = $item->details->count();
+                                        $alatKembali = $item->details
+                                            ->filter(function ($detail) {
+                                                return $detail->kondisi_alat_kembali !== null;
+                                            })
+                                            ->count();
+                                    @endphp
+
                                     @if ($item->status === 'dikembalikan')
                                         <span
                                             class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-black rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/30">
                                             <i class="bi bi-check-circle-fill text-sm"></i>
                                             Dikembalikan
+                                        </span>
+                                    @elseif($item->status === 'sebagian_dikembalikan')
+                                        <span
+                                            class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-black rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/30">
+                                            <i class="bi bi-arrow-repeat text-sm"></i>
+                                            Dikembalikan ({{ $alatKembali }}/{{ $totalAlat }})
                                         </span>
                                     @elseif($item->isLate())
                                         <span
@@ -566,6 +582,11 @@
                         </p>
                     </div>
 
+                    {{-- ============================================================================ --}}
+                    {{-- PART 1: UPDATE VIEW - KONDISI ALAT DENGAN BUTTON MODAL --}}
+                    {{-- Replace section Kondisi Alat yang lama dengan ini --}}
+                    {{-- ============================================================================ --}}
+
                     {{-- Kondisi Alat --}}
                     <div class="pt-6 border-t-2 border-gray-100">
                         <p class="text-sm font-black text-gray-700 mb-4 flex items-center gap-2">
@@ -573,8 +594,10 @@
                             Kondisi Alat
                         </p>
                         <div class="space-y-3">
-                            <div
-                                class="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100 group hover:shadow-md transition-all duration-300">
+                            {{-- Baik --}}
+                            {{-- <button type="button" onclick="openKondisiModal('baik')" --}}
+                            <button type="button" onclick=""
+                                class="w-full flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100 group hover:shadow-lg hover:border-green-300 transition-all duration-300 cursor-pointer">
                                 <span class="flex items-center gap-3 font-bold text-gray-700">
                                     <div
                                         class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -582,10 +605,16 @@
                                     </div>
                                     Baik
                                 </span>
-                                <span class="text-2xl font-black text-green-700">{{ $alatBaik }}</span>
-                            </div>
-                            <div
-                                class="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-100 group hover:shadow-md transition-all duration-300">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-2xl font-black text-green-700">{{ $alatBaik }}</span>
+                                    <i
+                                        class="bi bi-chevron-right text-green-600 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                                </div>
+                            </button>
+
+                            {{-- Rusak --}}
+                            <button type="button" onclick="openKondisiModal('rusak')"
+                                class="w-full flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-100 group hover:shadow-lg hover:border-orange-300 transition-all duration-300 cursor-pointer">
                                 <span class="flex items-center gap-3 font-bold text-gray-700">
                                     <div
                                         class="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -593,10 +622,16 @@
                                     </div>
                                     Rusak
                                 </span>
-                                <span class="text-2xl font-black text-orange-700">{{ $alatRusak }}</span>
-                            </div>
-                            <div
-                                class="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 group hover:shadow-md transition-all duration-300">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-2xl font-black text-orange-700">{{ $alatRusak }}</span>
+                                    <i
+                                        class="bi bi-chevron-right text-orange-600 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                                </div>
+                            </button>
+
+                            {{-- Maintenance --}}
+                            <button type="button" onclick="openKondisiModal('maintenance')"
+                                class="w-full flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 group hover:shadow-lg hover:border-blue-300 transition-all duration-300 cursor-pointer">
                                 <span class="flex items-center gap-3 font-bold text-gray-700">
                                     <div
                                         class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -604,8 +639,12 @@
                                     </div>
                                     Maintenance
                                 </span>
-                                <span class="text-2xl font-black text-blue-700">{{ $alatMaintenance }}</span>
-                            </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-2xl font-black text-blue-700">{{ $alatMaintenance }}</span>
+                                    <i
+                                        class="bi bi-chevron-right text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                                </div>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -660,6 +699,57 @@
             </div>
         </div>
 
+    </div>
+
+    {{-- ============================================================================ --}}
+    {{-- MODAL LIST ALAT BERDASARKAN KONDISI (TARUH DI AKHIR FILE SEBELUM @endsection) --}}
+    {{-- ============================================================================ --}}
+
+    <!-- Modal Kondisi Alat -->
+    <div id="kondisiModal"
+        class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+            onclick="event.stopPropagation()">
+            <!-- Modal Header -->
+            <div id="modalHeader" class="px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div id="modalIcon" class="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg">
+                        <i id="modalIconElement" class="text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 id="modalTitle" class="text-xl font-black text-gray-900"></h3>
+                        <p id="modalSubtitle" class="text-xs text-gray-600"></p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeKondisiModal()"
+                    class="text-gray-400 hover:text-gray-600 transition-all">
+                    <i class="bi bi-x-lg text-2xl"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="flex-1 overflow-y-auto px-6 pb-6">
+                <!-- Loading State -->
+                <div id="loadingState" class="flex items-center justify-center py-12">
+                    <div class="text-center">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                        <p class="text-gray-600 font-semibold">Memuat data...</p>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="hidden flex flex-col items-center justify-center py-12">
+                    <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                        <i class="bi bi-inbox text-gray-400 text-4xl"></i>
+                    </div>
+                    <p class="text-gray-600 font-bold text-lg">Tidak Ada Alat</p>
+                    <p class="text-gray-500 text-sm">Tidak ada alat dengan kondisi ini</p>
+                </div>
+
+                <!-- List Alat -->
+                <div id="listAlat" class="hidden space-y-3"></div>
+            </div>
+        </div>
     </div>
 
     {{-- Custom Animations & Scripts --}}
@@ -733,6 +823,153 @@
             progressBars.forEach(bar => {
                 bar.classList.add('animate-progress');
             });
+        });
+
+        let currentKondisi = null;
+
+        // Config untuk setiap kondisi
+        const kondisiConfig = {
+            baik: {
+                title: 'Alat Kondisi Baik',
+                subtitle: 'Daftar alat dalam kondisi baik',
+                headerClass: 'bg-gradient-to-r from-green-500 to-emerald-600',
+                iconClass: 'bg-gradient-to-br from-green-500 to-emerald-600',
+                icon: 'bi-check-circle-fill',
+                badgeClass: 'bg-green-100 text-green-700'
+            },
+            rusak: {
+                title: 'Alat Kondisi Rusak',
+                subtitle: 'Daftar alat yang mengalami kerusakan',
+                headerClass: 'bg-gradient-to-r from-yellow-500 to-orange-600',
+                iconClass: 'bg-gradient-to-br from-yellow-500 to-orange-600',
+                icon: 'bi-exclamation-circle-fill',
+                badgeClass: 'bg-orange-100 text-orange-700'
+            },
+            maintenance: {
+                title: 'Alat Dalam Maintenance',
+                subtitle: 'Daftar alat yang sedang dalam perawatan',
+                headerClass: 'bg-gradient-to-r from-blue-500 to-indigo-600',
+                iconClass: 'bg-gradient-to-br from-blue-500 to-indigo-600',
+                icon: 'bi-tools',
+                badgeClass: 'bg-blue-100 text-blue-700'
+            }
+        };
+
+        // Open Modal
+        async function openKondisiModal(kondisi) {
+            currentKondisi = kondisi;
+            const config = kondisiConfig[kondisi];
+
+            // Update modal header
+            document.getElementById('modalHeader').className =
+                `px-6 py-4 flex items-center justify-between ${config.headerClass}`;
+            document.getElementById('modalIcon').className =
+                `w-10 h-10 rounded-xl flex items-center justify-center shadow-lg ${config.iconClass}`;
+            document.getElementById('modalIconElement').className = `text-white text-xl ${config.icon}`;
+            document.getElementById('modalTitle').textContent = config.title;
+            document.getElementById('modalTitle').className = 'text-xl font-black text-white';
+            document.getElementById('modalSubtitle').textContent = config.subtitle;
+            document.getElementById('modalSubtitle').className = 'text-xs text-white/80';
+
+            // Show modal
+            document.getElementById('kondisiModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+
+            // Show loading
+            document.getElementById('loadingState').classList.remove('hidden');
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('listAlat').classList.add('hidden');
+
+            // Fetch data
+            try {
+                const response = await fetch(`/dashboard/alat-by-kondisi/${kondisi}`);
+                const data = await response.json();
+
+                displayAlatList(data.alat, config);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('emptyState').classList.remove('hidden');
+            }
+        }
+
+        // Display Alat List
+        function displayAlatList(alat, config) {
+            document.getElementById('loadingState').classList.add('hidden');
+
+            if (!alat || alat.length === 0) {
+                document.getElementById('emptyState').classList.remove('hidden');
+                return;
+            }
+
+            const listContainer = document.getElementById('listAlat');
+            listContainer.innerHTML = '';
+
+            alat.forEach((item, index) => {
+                const kondisiText = item.kondisi.replace(/_/g, ' ').toUpperCase();
+
+                const itemHtml = `
+            <div class="group p-4 bg-gradient-to-r from-gray-50 to-blue-50/30 rounded-xl border-2 border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg text-white font-black flex-shrink-0 group-hover:scale-110 transition-transform">
+                        ${index + 1}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="text-base font-black text-gray-900 mb-2">${item.nama_alat}</h4>
+                        <div class="flex flex-wrap gap-2 text-xs">
+                            <span class="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 rounded-lg font-semibold">
+                                <i class="bi bi-upc-scan"></i>
+                                ${item.kode_alat}
+                            </span>
+                            <span class="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded-lg font-semibold">
+                                <i class="bi bi-tag"></i>
+                                ${item.kategori ? item.kategori.nama_kategori : 'Tanpa Kategori'}
+                            </span>
+                            <span class="inline-flex items-center gap-1 px-2 py-1 ${config.badgeClass} rounded-lg font-bold">
+                                <i class="bi bi-tools"></i>
+                                ${kondisiText}
+                            </span>
+                        </div>
+                        <div class="mt-2 flex items-center gap-4 text-xs text-gray-600">
+                            <span class="flex items-center gap-1">
+                                <i class="bi bi-box"></i>
+                                <strong>Total:</strong> ${item.jumlah_total}
+                            </span>
+                            <span class="flex items-center gap-1 text-green-600 font-semibold">
+                                <i class="bi bi-check-circle"></i>
+                                <strong>Tersedia:</strong> ${item.jumlah_tersedia}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+                listContainer.innerHTML += itemHtml;
+            });
+
+            document.getElementById('listAlat').classList.remove('hidden');
+        }
+
+        // Close Modal
+        function closeKondisiModal() {
+            document.getElementById('kondisiModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            currentKondisi = null;
+        }
+
+        // ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeKondisiModal();
+            }
+        });
+
+        // Click backdrop
+        document.getElementById('kondisiModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeKondisiModal();
+            }
         });
     </script>
 @endsection

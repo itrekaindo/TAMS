@@ -13,7 +13,7 @@ class PeminjamController extends Controller
             ->withCount('peminjamans')
             ->with(['peminjamans' => function($q) {
                 $q->where('status', 'dipinjam')
-                ->with('alat')
+                ->with('details.alat')
                 ->latest();
             }]);
 
@@ -27,10 +27,10 @@ class PeminjamController extends Controller
         return view('peminjam.index', compact('peminjams'));
     }
 
-    public function create()
-    {
-        return view('peminjam.create');
-    }
+    // public function create()
+    // {
+    //     return view('peminjam.create');
+    // }
 
     public function store(Request $request)
     {
@@ -50,14 +50,14 @@ class PeminjamController extends Controller
 
     public function show(Peminjam $peminjam)
     {
-        $peminjam->load('peminjamans.alat');
+        $peminjam->load('peminjamans.details.alat');
         return view('peminjam.show', compact('peminjam'));
     }
 
-    public function edit(Peminjam $peminjam)
-    {
-        return view('peminjam.edit', compact('peminjam'));
-    }
+    // public function edit(Peminjam $peminjam)
+    // {
+    //     return view('peminjam.edit', compact('peminjam'));
+    // }
 
     public function update(Request $request, Peminjam $peminjam)
     {
