@@ -224,9 +224,13 @@ class PeminjamanController extends Controller
         }
     }
 
-    public function show(Peminjaman $peminjaman)
+    public function show($id)
     {
-        $peminjaman->load(['details.alat', 'peminjam', 'fotoPengembalian', 'dokumen']);
+        // $peminjaman->load(['details.alat', 'peminjam', 'fotoPengembalian', 'dokumen']);
+        $peminjaman = Peminjaman::withTrashed()
+            ->with(['details.alat', 'peminjam', 'fotoPengembalian', 'dokumen'])
+            ->findOrFail($id);
+
         return view('peminjaman.show', compact('peminjaman'));
     }
 
@@ -612,14 +616,98 @@ class PeminjamanController extends Controller
 
     public function destroy($id)
     {
-        $peminjaman = Peminjaman::with(['details.alat', 'fotoPengembalian', 'dokumen'])->findOrFail($id);
+        $peminjaman = Peminjaman::with('details.alat')->findOrFail($id);
 
-        // Cegah penghapusan jika masih dipinjam
-        // if (in_array($peminjaman->status, ['dipinjam', 'sebagian_dikembalikan'])) {
-        //     return redirect()
-        //         ->route('peminjaman.index')
-        //         ->with('error', 'Peminjaman yang masih aktif tidak dapat dihapus!');
-        // }
+        DB::beginTransaction();
+
+        try {
+            // Kembalikan stok alat jika peminjaman masih aktif
+            if (in_array($peminjaman->status, ['dipinjam', 'sebagian_dikembalikan'])) {
+                foreach ($peminjaman->details as $detail) {
+                    $sisaBelumKembali = $detail->jumlah - $detail->jumlah_dikembalikan;
+
+                    if ($sisaBelumKembali > 0 && $detail->alat) {
+                        $detail->alat->jumlah_tersedia += $sisaBelumKembali;
+                        $detail->alat->save();
+                    }
+                }
+            }
+
+            $peminjaman->delete(); // soft delete
+
+            DB::commit();
+
+            return redirect()
+                ->route('peminjaman.index')
+                ->with('success', 'Data peminjaman berhasil dihapus.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error destroy peminjaman: ' . $e->getMessage(), [
+                'peminjaman_id' => $id,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return redirect()
+                ->route('peminjaman.index')
+                ->with('error', 'Terjadi kesalahan saat menghapus data: ' . $e->getMessage());
+        }
+    }
+
+    public function restore($id)
+    {
+        $peminjaman = Peminjaman::withTrashed()->with('details.alat')->findOrFail($id);
+
+        DB::beginTransaction();
+
+        try {
+            // Kurangi stok alat kembali jika peminjaman masih aktif
+            if (in_array($peminjaman->status, ['dipinjam', 'sebagian_dikembalikan'])) {
+                foreach ($peminjaman->details as $detail) {
+                    $sisaBelumKembali = $detail->jumlah - $detail->jumlah_dikembalikan;
+
+                    if ($sisaBelumKembali > 0 && $detail->alat) {
+                        // Pastikan stok mencukupi sebelum restore
+                        if ($detail->alat->jumlah_tersedia < $sisaBelumKembali) {
+                            throw new \Exception(
+                                "Stok {$detail->alat->nama_alat} tidak mencukupi untuk memulihkan peminjaman ini! " .
+                                "Tersedia: {$detail->alat->jumlah_tersedia}, Dibutuhkan: {$sisaBelumKembali}"
+                            );
+                        }
+
+                        $detail->alat->jumlah_tersedia -= $sisaBelumKembali;
+                        $detail->alat->save();
+                    }
+                }
+            }
+
+            $peminjaman->restore();
+
+            DB::commit();
+
+            return redirect()
+                ->route('peminjaman.trash')
+                ->with('success', 'Data peminjaman berhasil dipulihkan.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error restore peminjaman: ' . $e->getMessage(), [
+                'peminjaman_id' => $id,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return redirect()
+                ->route('peminjaman.trash')
+                ->with('error', 'Gagal memulihkan: ' . $e->getMessage());
+        }
+    }
+
+    // Hapus permanen
+    public function permanentDelete($id)
+    {
+        $peminjaman = Peminjaman::withTrashed()
+                        ->with(['details.alat', 'fotoPengembalian', 'dokumen'])
+                        ->findOrFail($id);
 
         DB::beginTransaction();
 
@@ -642,7 +730,7 @@ class PeminjamanController extends Controller
                 $dokumen->delete();
             }
 
-            // Hapus foto peminjaman awal
+            // ✅ Hapus foto peminjaman awal
             if ($peminjaman->foto_peminjaman) {
                 $fotoPinjamPath = public_path($peminjaman->foto_peminjaman);
                 if (file_exists($fotoPinjamPath)) {
@@ -650,29 +738,37 @@ class PeminjamanController extends Controller
                 }
             }
 
-            // Hapus detail peminjaman
             $peminjaman->details()->delete();
-
-            // Hapus header peminjaman
-            $peminjaman->delete();
+            $peminjaman->forceDelete();
 
             DB::commit();
 
             return redirect()
-                ->route('peminjaman.index')
-                ->with('success', 'Data peminjaman berhasil dihapus.');
+                ->route('peminjaman.trash')
+                ->with('success', 'Data peminjaman berhasil dihapus permanen.');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error destroy peminjaman: ' . $e->getMessage(), [
+            // ✅ Log error lengkap dengan trace
+            Log::error('Error force delete peminjaman: ' . $e->getMessage(), [
                 'peminjaman_id' => $id,
-                'trace' => $e->getTraceAsString(),
+                'trace' => $e->getTraceAsString()
             ]);
 
             return redirect()
-                ->route('peminjaman.index')
+                ->route('peminjaman.trash')
                 ->with('error', 'Terjadi kesalahan saat menghapus data: ' . $e->getMessage());
         }
+    }
+
+    public function trash()
+    {
+        $peminjamans = Peminjaman::onlyTrashed()
+                        ->with(['details.alat', 'peminjam'])
+                        ->latest('deleted_at')
+                        ->paginate(15);
+
+        return view('peminjaman.trash', compact('peminjamans'));
     }
 
     public function getItems($id)

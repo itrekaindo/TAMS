@@ -227,6 +227,35 @@
                 </form>
             </div>
         </nav>
+
+        {{-- Trash Button - Admin Only --}}
+        @if(Auth::check() && in_array(Auth::user()->role ?? '', ['admin', 'superadmin']))
+            @php $trashCount = \App\Models\Peminjaman::onlyTrashed()->count(); @endphp
+
+
+            <a
+                href="{{ route('peminjaman.trash') }}"
+                class="absolute bottom-20 right-3 z-50 group"
+                title="Trash Peminjaman"
+            >
+                <div class="relative w-9 h-9 flex items-center justify-center rounded-xl
+                            {{ request()->routeIs('peminjaman.trash')
+                                ? 'bg-red-500 shadow-lg shadow-red-500/50'
+                                : 'bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/40' }}
+                            transition-all duration-200">
+                    <i class="bi bi-trash3 text-sm
+                            {{ request()->routeIs('peminjaman.trash') ? 'text-white' : 'text-slate-400 group-hover:text-red-400' }}
+                            transition-colors"></i>
+
+                    @if($trashCount > 0)
+                        <span class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center ring-2 ring-slate-900">
+                            {{ $trashCount > 9 ? '9+' : $trashCount }}
+                        </span>
+                    @endif
+                </div>
+            </a>
+        @endif
+
     </div>
 
     {{-- Mini Toggle Indicator (Desktop Only) --}}
@@ -241,6 +270,9 @@
             <i class="bi bi-chevron-left text-xs"></i>
         </button>
     </div>
+
+
+
 </aside>
 
 {{-- Overlay Mobile --}}

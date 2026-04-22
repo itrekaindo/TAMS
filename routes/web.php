@@ -47,6 +47,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/dashboard/alat-by-kondisi/{kondisi}', [DashboardController::class, 'getAlatByKondisi'])->name('dashboard.alat-by-kondisi');
 
         // Peminjaman - Full CRUD
+        Route::get('/peminjaman/trash', [PeminjamanController::class, 'trash'])->name('peminjaman.trash');
+        Route::patch('/peminjaman/{id}/restore', [PeminjamanController::class, 'restore'])->name('peminjaman.restore');
+        Route::delete('/peminjaman/{id}/permanent-delete', [PeminjamanController::class, 'permanentDelete'])->name('peminjaman.permanent-delete');
         Route::resource('peminjaman', PeminjamanController::class)->except(['create', 'store']);
         Route::get('/peminjaman/{id}/items', [PeminjamanController::class, 'getItems'])->name('peminjaman.items');
 
@@ -75,6 +78,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Routes khusus Admin ONLY
     Route::middleware(['role:admin'])->group(function () {
+
+
         // Import Alat
         Route::get('/alat/import', [AlatController::class, 'importForm'])->name('alat.import.form');
         Route::post('/alat/import', [AlatController::class, 'import'])->name('alat.import');
