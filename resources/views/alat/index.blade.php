@@ -521,7 +521,7 @@
                                             </a>
 
                                             <form action="{{ route('alat.destroy', $alat) }}" method="POST"
-                                                class="inline"
+                                                class="inline-flex"
                                                 onsubmit="return confirm('Yakin ingin menghapus alat {{ $alat->nama_alat }}?\n\nAksi ini tidak dapat dibatalkan!')">
                                                 @csrf
                                                 @method('DELETE')

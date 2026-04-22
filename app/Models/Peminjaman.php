@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 use App\Models\PeminjamanFotoPengembalian;
 use App\Models\PeminjamanDokumen;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Peminjaman extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     protected $table = 'peminjamans';
 

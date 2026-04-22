@@ -170,10 +170,13 @@
                                 <th class="px-6 py-4 text-left text-xs font-black text-gray-600 uppercase tracking-wider">
                                     Peminjaman Aktif
                                 </th>
+                                {{-- [TAMBAHAN] Header kolom Aksi --}}
+                                <th class="px-6 py-4 text-center text-xs font-black text-gray-600 uppercase tracking-wider">
+                                    Aksi
+                                </th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-50">
-                            {{-- LANJUTAN DARI PART 1: <tbody> --}}
                             @foreach ($peminjams as $peminjam)
                                 <tr
                                     class="group hover:bg-gradient-to-r hover:from-blue-50/30 hover:to-indigo-50/30 transition-all duration-300">
@@ -331,6 +334,30 @@
                                             </div>
                                         @endif
                                     </td>
+
+                                    {{-- [TAMBAHAN] Kolom Aksi --}}
+                                    <td class="px-6 py-5">
+                                        <div class="flex items-center justify-center">
+                                            <a href="{{ route('peminjam.edit', $peminjam->id) }}"
+                                                class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg hover:shadow-orange-500/30 transition-all duration-300 group/btn">
+                                                <i class="bi bi-pencil-square text-sm group-hover/btn:rotate-12 transition-transform duration-300"></i>
+                                                Edit
+                                            </a>
+                                        </div>
+
+                                        {{-- Hapus --}}
+                                        {{-- <form action="{{ route('peminjam.destroy', $peminjam->id) }}" method="POST"
+                                            class="inline-block ml-2">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg hover:shadow-red-500/30 transition-all duration-300 group/btn"
+                                                onclick="return confirm('Apakah Anda yakin ingin menghapus peminjam ini?')">
+                                                <i class="bi bi-trash-fill text-sm group-hover/btn:rotate-12 transition-transform duration-300"></i>
+                                                Hapus
+                                            </button>
+                                        </form> --}}
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -366,7 +393,6 @@
                 class="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-2xl p-6 shadow-xl">
                 <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
                 <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12"></div>
-
                 <div class="relative">
                     <div class="flex items-start gap-4 mb-4">
                         <div
@@ -388,7 +414,6 @@
                 class="relative overflow-hidden bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 rounded-2xl p-6 shadow-xl">
                 <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
                 <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12"></div>
-
                 <div class="relative">
                     <div class="flex items-start gap-4 mb-4">
                         <div
@@ -416,7 +441,6 @@
                 class="relative overflow-hidden bg-gradient-to-br from-purple-600 via-pink-600 to-rose-600 rounded-2xl p-6 shadow-xl">
                 <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
                 <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12"></div>
-
                 <div class="relative">
                     <div class="flex items-start gap-4 mb-4">
                         <div

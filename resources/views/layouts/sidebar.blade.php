@@ -38,7 +38,7 @@
                     Main Menu
                 </p>
 
-                {{-- Dashboard --}}
+                {{-- Dashboard - Accessible by ALL roles --}}
                 <a
                     href="{{ route('dashboard') }}"
                     class="group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 relative overflow-hidden
@@ -57,7 +57,7 @@
                 </a>
             </div>
 
-            {{-- Transactions Section --}}
+            {{-- Transactions Section - Accessible by ALL roles --}}
             <div class="px-3 mb-6">
                 <p
                     x-show="!sidebarMini"
@@ -104,52 +104,68 @@
                 </a>
             </div>
 
-            {{-- Master Data Section --}}
-            <div class="px-3 mb-6">
-                <p
-                    x-show="!sidebarMini"
-                    x-transition
-                    class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 px-3"
-                >
-                    Master Data
-                </p>
+            {{-- Master Data Section - Role-based access --}}
+            @if(Auth::check())
+                @php
+                    $userRole = Auth::user()->role ?? 'toolskeeper';
+                    $canAccessMasterData = in_array($userRole, ['admin', 'superadmin']);
+                    $canAccessAlat = in_array($userRole, ['admin', 'superadmin']);
+                    $canAccessPeminjam = in_array($userRole, ['admin', 'superadmin', 'toolskeeper']);
+                @endphp
 
-                {{-- Data Alat --}}
-                <a
-                    href="{{ route('alat.index') }}"
-                    class="group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 relative overflow-hidden
-                           {{ request()->routeIs('alat.*')
-                              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/50'
-                              : 'text-slate-300 hover:bg-white/5 hover:text-white' }}"
-                    :title="sidebarMini ? 'Data Alat' : ''"
-                >
-                    @if(request()->routeIs('alat.*'))
-                        <div class="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-indigo-400/20 animate-pulse"></div>
-                    @endif
-                    <div class="relative z-10 flex items-center gap-3 w-full">
-                        <i class="bi bi-box-seam text-xl {{ request()->routeIs('alat.*') ? '' : 'group-hover:scale-110 transition-transform' }}"></i>
-                        <span x-show="!sidebarMini" x-transition class="font-semibold text-sm">Data Alat</span>
-                    </div>
-                </a>
+                {{-- Show Master Data section if user has access to at least one menu --}}
+                @if($canAccessMasterData || $canAccessPeminjam)
+                    <div class="px-3 mb-6">
+                        <p
+                            x-show="!sidebarMini"
+                            x-transition
+                            class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 px-3"
+                        >
+                            Master Data
+                        </p>
 
-                {{-- Data Peminjam --}}
-                <a
-                    href="{{ route('peminjam.index') }}"
-                    class="group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 relative overflow-hidden
-                           {{ request()->routeIs('peminjam.*')
-                              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/50'
-                              : 'text-slate-300 hover:bg-white/5 hover:text-white' }}"
-                    :title="sidebarMini ? 'Data Peminjam' : ''"
-                >
-                    @if(request()->routeIs('peminjam.*'))
-                        <div class="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-indigo-400/20 animate-pulse"></div>
-                    @endif
-                    <div class="relative z-10 flex items-center gap-3 w-full">
-                        <i class="bi bi-people text-xl {{ request()->routeIs('peminjam.*') ? '' : 'group-hover:scale-110 transition-transform' }}"></i>
-                        <span x-show="!sidebarMini" x-transition class="font-semibold text-sm">Data Peminjam</span>
+                        {{-- Data Alat - Only for admin & superadmin --}}
+                        @if($canAccessAlat)
+                            <a
+                                href="{{ route('alat.index') }}"
+                                class="group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 relative overflow-hidden
+                                       {{ request()->routeIs('alat.*')
+                                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/50'
+                                          : 'text-slate-300 hover:bg-white/5 hover:text-white' }}"
+                                :title="sidebarMini ? 'Data Alat' : ''"
+                            >
+                                @if(request()->routeIs('alat.*'))
+                                    <div class="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-indigo-400/20 animate-pulse"></div>
+                                @endif
+                                <div class="relative z-10 flex items-center gap-3 w-full">
+                                    <i class="bi bi-box-seam text-xl {{ request()->routeIs('alat.*') ? '' : 'group-hover:scale-110 transition-transform' }}"></i>
+                                    <span x-show="!sidebarMini" x-transition class="font-semibold text-sm">Data Alat</span>
+                                </div>
+                            </a>
+                        @endif
+
+                        {{-- Data Peminjam - For admin, superadmin, and toolskeeper --}}
+                        @if($canAccessPeminjam)
+                            <a
+                                href="{{ route('peminjam.index') }}"
+                                class="group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 relative overflow-hidden
+                                       {{ request()->routeIs('peminjam.*')
+                                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/50'
+                                          : 'text-slate-300 hover:bg-white/5 hover:text-white' }}"
+                                :title="sidebarMini ? 'Data Peminjam' : ''"
+                            >
+                                @if(request()->routeIs('peminjam.*'))
+                                    <div class="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-indigo-400/20 animate-pulse"></div>
+                                @endif
+                                <div class="relative z-10 flex items-center gap-3 w-full">
+                                    <i class="bi bi-people text-xl {{ request()->routeIs('peminjam.*') ? '' : 'group-hover:scale-110 transition-transform' }}"></i>
+                                    <span x-show="!sidebarMini" x-transition class="font-semibold text-sm">Data Peminjam</span>
+                                </div>
+                            </a>
+                        @endif
                     </div>
-                </a>
-            </div>
+                @endif
+            @endif
 
             {{-- Divider --}}
             <div class="mx-6">
@@ -177,8 +193,28 @@
                     <span x-show="!sidebarMini" x-transition class="font-semibold text-sm">Portal Publik</span>
                 </a>
 
+                {{-- User Profile Info (only when sidebar is expanded) --}}
+                <div
+                    x-show="!sidebarMini"
+                    x-transition
+                    class="mt-4 p-3 bg-white/5 rounded-xl border border-white/10"
+                >
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg">
+                            {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-white truncate">{{ Auth::user()->name ?? 'User' }}</p>
+                            <p class="text-xs text-slate-400 truncate capitalize">
+                                <i class="bi bi-shield-check mr-1"></i>
+                                {{ Auth::user()->role ?? 'toolskeeper' }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Logout --}}
-                <form action="{{ route('logout') }}" method="POST">
+                <form action="{{ route('logout') }}" method="POST" class="mt-4">
                     @csrf
                     <button
                         type="submit"

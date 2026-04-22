@@ -54,10 +54,10 @@ class PeminjamController extends Controller
         return view('peminjam.show', compact('peminjam'));
     }
 
-    // public function edit(Peminjam $peminjam)
-    // {
-    //     return view('peminjam.edit', compact('peminjam'));
-    // }
+    public function edit(Peminjam $peminjam)
+    {
+        return view('peminjam.edit', compact('peminjam'));
+    }
 
     public function update(Request $request, Peminjam $peminjam)
     {
@@ -65,7 +65,7 @@ class PeminjamController extends Controller
             'nama_lengkap' => 'required|string|max:255',
             'nip' => 'required|string|max:50|unique:peminjam,nip,' . $peminjam->id,
             'departemen' => 'required|string|max:255',
-            'email' => 'required|email|unique:peminjam,email,' . $peminjam->id,
+            'email' => 'required|email',
             'telepon' => 'required|string|max:20'
         ]);
 

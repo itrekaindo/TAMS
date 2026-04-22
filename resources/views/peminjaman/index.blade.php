@@ -408,22 +408,31 @@
 
                                     {{-- Aksi --}}
                                     <td class="px-6 py-5">
-                                        <div class="flex items-center justify-end gap-2">
+                                        <div class="flex items-center justify-end gap-2">  {{-- ✅ Satu wrapper --}}
+
+                                            {{-- Tombol View --}}
                                             <a href="{{ route('peminjaman.show', $peminjaman->id) }}"
                                                 class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-bold text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-all hover:shadow-md"
                                                 title="Lihat Detail">
                                                 <i class="bi bi-eye"></i>
                                             </a>
 
-                                            {{-- @if ($peminjaman->status === 'dipinjam')
-                                        <a href="{{ route('peminjaman.kembalikan', $peminjaman->id) }}"
-                                           class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-bold text-green-600 bg-green-50 rounded-lg hover:bg-green-100 transition-all hover:shadow-md"
-                                           title="Kembalikan">
-                                            <i class="bi bi-arrow-return-left"></i>
-                                        </a>
-                                    @endif --}}
-                                        </div>
+                                            {{-- Tombol Hapus (di dalam div yang sama) --}}
+                                            <form action="{{ route('peminjaman.destroy', $peminjaman->id) }}" method="POST"
+                                                onsubmit="return confirm('Apakah Anda yakin ingin menghapus data peminjaman ini?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                    class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-bold text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-all hover:shadow-md"
+                                                    title="Hapus">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+
+                                        </div>  {{-- ✅ Tutup di sini --}}
                                     </td>
+
+
                                 </tr>
                             @endforeach
                         </tbody>
@@ -515,28 +524,28 @@
         });
 
         // Search functionality with debounce
-        let searchTimeout;
-        document.getElementById('searchInput').addEventListener('input', function() {
-            clearTimeout(searchTimeout);
+        // let searchTimeout;
+        // document.getElementById('searchInput').addEventListener('input', function() {
+            // clearTimeout(searchTimeout);
+//
+            // const searchIcon = this.previousElementSibling;
+            // searchIcon.classList.remove('bi-search');
+            // searchIcon.classList.add('bi-hourglass-split');
 
-            const searchIcon = this.previousElementSibling;
-            searchIcon.classList.remove('bi-search');
-            searchIcon.classList.add('bi-hourglass-split');
+            // searchTimeout = setTimeout(() => {
+                // const search = this.value;
+                // const url = new URL(window.location.href);
 
-            searchTimeout = setTimeout(() => {
-                const search = this.value;
-                const url = new URL(window.location.href);
+                // if (search) {
+                    // url.searchParams.set('search', search);
+                // } else {
+                    // url.searchParams.delete('search');
+                // }
 
-                if (search) {
-                    url.searchParams.set('search', search);
-                } else {
-                    url.searchParams.delete('search');
-                }
-
-                url.searchParams.set('page', '1');
-                window.location.href = url.toString();
-            }, 800);
-        });
+                // url.searchParams.set('page', '1');
+                // window.location.href = url.toString();
+            // }, 800);
+        // });
 
         function showAllItems(peminjamanId) {
             const modal = document.getElementById('itemsModal');

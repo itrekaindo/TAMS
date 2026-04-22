@@ -610,6 +610,71 @@ class PeminjamanController extends Controller
         }
     }
 
+    public function destroy($id)
+    {
+        $peminjaman = Peminjaman::with(['details.alat', 'fotoPengembalian', 'dokumen'])->findOrFail($id);
+
+        // Cegah penghapusan jika masih dipinjam
+        // if (in_array($peminjaman->status, ['dipinjam', 'sebagian_dikembalikan'])) {
+        //     return redirect()
+        //         ->route('peminjaman.index')
+        //         ->with('error', 'Peminjaman yang masih aktif tidak dapat dihapus!');
+        // }
+
+        DB::beginTransaction();
+
+        try {
+            // Hapus file foto pengembalian
+            foreach ($peminjaman->fotoPengembalian as $foto) {
+                $fotoFullPath = public_path($foto->foto_path);
+                if (file_exists($fotoFullPath)) {
+                    unlink($fotoFullPath);
+                }
+                $foto->delete();
+            }
+
+            // Hapus file dokumen BA
+            foreach ($peminjaman->dokumen as $dokumen) {
+                $dokumenFullPath = public_path($dokumen->dokumen_path);
+                if (file_exists($dokumenFullPath)) {
+                    unlink($dokumenFullPath);
+                }
+                $dokumen->delete();
+            }
+
+            // Hapus foto peminjaman awal
+            if ($peminjaman->foto_peminjaman) {
+                $fotoPinjamPath = public_path($peminjaman->foto_peminjaman);
+                if (file_exists($fotoPinjamPath)) {
+                    unlink($fotoPinjamPath);
+                }
+            }
+
+            // Hapus detail peminjaman
+            $peminjaman->details()->delete();
+
+            // Hapus header peminjaman
+            $peminjaman->delete();
+
+            DB::commit();
+
+            return redirect()
+                ->route('peminjaman.index')
+                ->with('success', 'Data peminjaman berhasil dihapus.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error destroy peminjaman: ' . $e->getMessage(), [
+                'peminjaman_id' => $id,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return redirect()
+                ->route('peminjaman.index')
+                ->with('error', 'Terjadi kesalahan saat menghapus data: ' . $e->getMessage());
+        }
+    }
+
     public function getItems($id)
     {
         try {

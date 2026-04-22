@@ -81,12 +81,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/alat/template', [AlatController::class, 'downloadTemplate'])->name('alat.template');
 
         // Alat - Full CRUD
-        Route::resource('alat', AlatController::class)->only(['index', 'show']);
         Route::get('/alat/create', [AlatController::class, 'create'])->name('alat.create');
         Route::post('/alat', [AlatController::class, 'store'])->name('alat.store');
         Route::get('/alat/{alat}/edit', [AlatController::class, 'edit'])->name('alat.edit');
         Route::put('/alat/{alat}', [AlatController::class, 'update'])->name('alat.update');
         Route::delete('/alat/{alat}', [AlatController::class, 'destroy'])->name('alat.destroy');
+        Route::resource('alat', AlatController::class)->only(['index', 'show']);
 
         // Adjust Stock
         Route::post('alat/{alat}/adjust-stock', [AlatController::class, 'adjustStock'])->name('alat.adjust-stock');

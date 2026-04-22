@@ -164,7 +164,57 @@
                 <p>&copy; {{ date('Y') }} <span class="font-semibold text-slate-800">PT Rekaindo Global Jasa</span>. All rights reserved.</p>
                 <div class="flex items-center gap-6">
                     <a href="#" class="hover:text-blue-600 transition-colors font-medium">Bantuan</a>
-                    <a href="#" class="hover:text-blue-600 transition-colors font-medium">Dokumentasi</a>
+
+                    <div x-data="{ open: false }" class="relative">
+                        <button
+                            @click="open = !open"
+                            class="hover:text-blue-600 transition-colors font-medium flex items-center gap-1.5"
+                        >
+                            Dokumentasi
+                            <i
+                                class="bi bi-chevron-up text-xs transition-transform duration-200"
+                                :class="{ 'rotate-180': open }"
+                            ></i>
+                        </button>
+
+                        <!-- Dropdown Menu -->
+                        <div
+                            x-show="open"
+                            @click.away="open = false"
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 -translate-y-2"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 -translate-y-2"
+                            style="bottom: calc(100% + 0.5rem);"
+                            class="absolute right-0 w-60 bg-white/95 backdrop-blur-xl rounded-xl shadow-xl border border-slate-200/60 overflow-hidden z-50"
+                        >
+                            <div class="py-1">
+                                <a
+                                    href="{{ asset('templates/MANUAL_USER.pdf') }}"
+                                    download
+                                    class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 group"
+                                >
+                                    <div class="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <i class="bi bi-file-earmark-pdf text-lg text-red-500"></i>
+                                    </div>
+                                    <span class="font-medium">Panduan Pengguna</span>
+                                </a>
+                                <a
+                                    href="{{ asset('templates/MANUAL_ADMIN.pdf') }}"
+                                    download
+                                    class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 group"
+                                >
+                                    <div class="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <i class="bi bi-file-earmark-pdf text-lg text-red-500"></i>
+                                    </div>
+                                    <span class="font-medium">Panduan Admin</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
                     <a href="#" class="hover:text-blue-600 transition-colors font-medium">Kontak</a>
                 </div>
             </div>
